@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Yeiner Sanchez",
+    "nationality": "Colombia",
+    "team": "Atlético Tapitas",
+    "position": "arquero",
+    "age": 22,
+    "photo": ""
+  },
+  {
+    "name": "Lionel Messi",
+    "nationality": "Argentina",
+    "team": "Inter Miami CF",
+    "position": "delantero",
+    "age": 38,
+    "photo": "https://tse2.mm.bing.net/th/id/OIP.av8M0Lx8LAKd4BC-wedccQHaE8?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  },
+  {
+    "name": "Cristiano Ronaldo",
+    "nationality": "Portugal",
+    "team": "Al-Nassr FC",
+    "position": "delantero",
+    "age": 38,
+    "photo": "https://intn24.lalr.co/cms/2026/07/29110054/Cristiano-Ronaldo-EFE.jpg?w=1280"
+  },
+  {
+    "name": "Neymar Jr.",
+    "nationality": "Brasil",
+    "team": "Al Hilal",
+    "position": "delantero",
+    "age": 31,
+    "photo": "https://tse1.mm.bing.net/th/id/OIP.VJRZlDlTIS6uMV7zID17YwHaE8?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  },
+  {
+    "name": "Robert Lewandowski",
+    "nationality": "Polonia",
+    "team": "Barcelona",
+    "position": "delantero",
+    "age": 35,
+    "photo": " " 
+  },
+  {
+    "name": "Kevin De Bruyne",
+    "nationality": "Bélgica",
+    "team": "Manchester City",
+    "position": "medio campo",
+    "age": 32,
+    "photo": ""
+  }
+]

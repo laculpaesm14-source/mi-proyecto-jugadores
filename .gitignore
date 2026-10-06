@@ -1,0 +1,15 @@
+# Archivos internos de la herramienta que creó el proyecto; no son parte del sitio.
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
+
+# Archivos locales con configuraciones privadas, como contraseñas o claves.
+.env*.local
+
+# Carpetas y archivos temporales que se pueden volver a generar.
+node_modules
+.next/
+.DS_Store

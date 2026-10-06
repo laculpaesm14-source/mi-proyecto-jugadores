@@ -1,0 +1,7 @@
+# Ajustes de pnpm, la herramienta que instala las piezas necesarias del proyecto.
+pmOnFail: ignore
+
+# Nombres de herramientas que pnpm debe tratar de forma especial.
+minimumReleaseAgeExclude:
+  - '@next/*'
+  - next
