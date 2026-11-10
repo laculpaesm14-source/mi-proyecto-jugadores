@@ -1,3 +1,4 @@
+// app/: define la estructura común, las fuentes y los metadatos de las páginas.
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'

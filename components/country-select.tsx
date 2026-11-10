@@ -1,3 +1,4 @@
+// components/: contiene piezas reutilizables de la interfaz, como el selector de país.
 "use client"
 
 import useSWR from "swr"

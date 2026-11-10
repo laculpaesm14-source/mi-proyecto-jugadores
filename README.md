@@ -16,7 +16,7 @@ Una aplicación web completa para gestionar jugadores, armar alineaciones y visu
 ## 📋 Requisitos
 
 Necesitas tener instalado:
-- **Node.js 18+** (descarga desde [nodejs.org](https://nodejs.org))
+- **Node.js 22+** (descarga desde [nodejs.org](https://nodejs.org))
 - **Git** (descarga desde [git-scm.com](https://git-scm.com))
 - **Visual Studio Code** (descarga desde [code.visualstudio.com](https://code.visualstudio.com))
 
@@ -52,7 +52,22 @@ Necesitas tener instalado:
 
 3. Espera a que termine (puede tardar 1-2 minutos)
 
-### Paso 4: Iniciar el servidor
+### Paso 4: Conectar Supabase
+
+1. Crea un proyecto en [Supabase](https://supabase.com/) o abre uno existente.
+2. En **SQL Editor**, ejecuta todo el contenido de [`supabase/schema.sql`](./supabase/schema.sql). Esto crea las tablas `players` y `user_lineups`, activa RLS y limita cada cuenta a sus propios registros. Si ya ejecutaste una versión anterior, vuelve a ejecutar el archivo completo para crear `user_lineups`; las instrucciones son repetibles y no borran los jugadores existentes.
+3. En **Project Settings → API**, copia la **Project URL** y la **Publishable key**.
+4. Copia `.env.example` como `.env.local` en la raíz y completa:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-clave-publicable
+   ```
+
+   La clave publicable (o la antigua `anon`) se puede usar en el navegador porque el acceso está protegido por las políticas RLS. **Nunca pongas una `service_role` o secret key en variables `NEXT_PUBLIC_` ni en el navegador.**
+5. En **Authentication → URL Configuration**, configura **Site URL** y añade a **Redirect URLs** la dirección de la app (por ejemplo, `http://localhost:3000/**` para desarrollo y el dominio desplegado). Activa el proveedor Email. Supabase debe permitir la URL a la que volverá el enlace de recuperación.
+
+### Paso 5: Iniciar el servidor
 
 Escribe este comando en la terminal:
 ```bash
@@ -70,31 +85,25 @@ Verás algo como:
 - Local:        http://localhost:3000
 ```
 
-### Paso 5: Abrir en el navegador
+### Paso 6: Abrir en el navegador
 
 1. Abre tu navegador (Chrome, Firefox, Edge, Safari)
 2. Ve a `http://localhost:3000`
 3. ¡Ya está funcionando! 🎉
 
-## 📱 Acceder desde el celular en la misma red
+## 📱 Sincronizar entre dispositivos
 
-Para que tu celular y computador compartan los mismos jugadores:
-
-1. En la terminal donde corre el servidor, busca la línea que dice `Local:` (ej: `http://localhost:3000`)
-2. Reemplaza `localhost` con la **IP de tu computador**:
-   - **Windows**: abre "Símbolo del sistema" y escribe `ipconfig`, busca "IPv4 Address" (ej: `192.168.1.X`)
-   - **Mac/Linux**: abre la terminal y escribe `ifconfig`, busca "inet" (ej: `192.168.1.X`)
-
-3. En tu celular, abre el navegador y ve a `http://192.168.1.X:3000` (reemplaza X con tu IP)
-4. Agrega un jugador en el computador → aparecerá en el celular al instante ✅
+Despliega la aplicación y configura en el hosting las mismas variables `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Inicia sesión con la misma cuenta en cada dispositivo; los cambios se sincronizan en tiempo real. Para desarrollo local, ambos dispositivos deben poder abrir la dirección de tu computador.
 
 ## 🗄️ Base de datos
 
-Los datos se guardan automáticamente en **Neon** (base de datos en la nube). No necesitas configurar nada — todo está listo.
+Los registros se guardan en **Supabase**. Cada cuenta tiene su propia lista y las políticas de seguridad de la tabla impiden que una cuenta lea o modifique la lista de otra.
 
-Si quieres resetear los datos:
-1. En VS Code, abre la terminal integrada
-2. Los datos se pueden borrar manualmente si necesitas empezar de cero
+Los jugadores y la alineación se consultan y guardan directamente en Supabase. La app no usa almacenamiento local del navegador ni carga jugadores de ejemplo automáticamente. Para cargar los datos entregados por el profesor, inicia sesión y usa **Archivos de jugadores → Importar JSON o TXT** para seleccionar manualmente `jugadores_data_4.txt`. El importador acepta una lista JSON (incluida una lista dentro de `players`, `jugadores` o `data`) con campos en inglés o español, como `id`/`identificacion`, `name`/`nombre`, `age`/`edad`, `position`/`posicion`, `team`/`equipo` y `nationality`/`nacionalidad`. Los IDs repetidos dentro del archivo se consolidan y una importación repetida actualiza el registro existente en Supabase en lugar de crear otro. Descargar o visualizar JSON solo exporta/muestra una copia de los registros que ya están en Supabase; no guarda una base de datos en el navegador.
+
+Para crear una cuenta, selecciona **Crear cuenta** en la pantalla de inicio. Si Supabase tiene activada la confirmación por correo, revisa tu bandeja de entrada antes de iniciar sesión.
+
+Si olvidas la contraseña, selecciona **¿Olvidaste tu contraseña?** en el inicio de sesión. Abre el enlace que llegue por correo y establece una contraseña nueva de 12 a 64 caracteres.
 
 ## 🎮 Cómo usar la app
 
@@ -102,6 +111,12 @@ Si quieres resetear los datos:
 1. Rellena el formulario "Agregar nuevo jugador"
 2. Campo foto: puedes pegar una URL o subir una imagen
 3. Presiona "Añadir jugador"
+
+### Importar los datos de la evaluación
+1. Inicia sesión en la aplicación.
+2. Baja a **Archivos de jugadores** y pulsa **Importar JSON o TXT**.
+3. Selecciona el archivo `jugadores_data_4.txt` que te entregó el profesor.
+4. Espera el mensaje de confirmación. Si el archivo tiene datos incorrectos, la app mostrará el registro que debes revisar.
 
 ### Editar jugador
 1. En la tabla, presiona el botón de **Editar** (lápiz)
@@ -173,7 +188,7 @@ npm run build
 - **Next.js 16**: framework web
 - **React**: librería UI
 - **Tailwind CSS**: estilos
-- **Neon + Drizzle ORM**: base de datos
+- **Supabase**: base de datos, autenticación y sincronización en tiempo real
 - **shadcn/ui**: componentes UI bonitos
 
 ## 📞 Ayuda

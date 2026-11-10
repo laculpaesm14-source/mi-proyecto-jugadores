@@ -1,3 +1,4 @@
+// components/: contiene piezas reutilizables de la interfaz, como la tabla de jugadores.
 "use client"
 
 import Image from "next/image"
@@ -32,7 +33,7 @@ export function PlayersTable({ players, onEdit, onDelete }: Props) {
     <>
       <div className="space-y-3 sm:hidden">
         {players.map((p) => (
-          <article key={p.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <article key={p.id} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm shadow-emerald-950/[0.04] transition hover:shadow-md">
             <div className="flex items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-secondary">
                 {p.photo ? (
@@ -116,7 +117,7 @@ export function PlayersTable({ players, onEdit, onDelete }: Props) {
         ))}
       </div>
 
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm sm:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm sm:block">
       <table className="w-full table-fixed border-collapse text-xs sm:text-sm">
         <colgroup>
           <col className="w-[7%]" />
@@ -130,7 +131,7 @@ export function PlayersTable({ players, onEdit, onDelete }: Props) {
         <caption className="sr-only">Lista completa de jugadores registrados</caption>
         {/* Estos títulos explican qué información hay debajo de cada uno. */}
         <thead>
-          <tr className="bg-primary text-primary-foreground">
+          <tr className="bg-emerald-950 text-white">
             <th className="px-2 py-3 text-left font-semibold sm:px-3">ID</th>
             <th className="px-2 py-3 text-left font-semibold sm:px-3">Nombre</th>
             <th className="px-2 py-3 text-left font-semibold sm:px-3">Nacionalidad</th>
@@ -143,7 +144,7 @@ export function PlayersTable({ players, onEdit, onDelete }: Props) {
         {/* Cada fila muestra el nombre, el país, el equipo y otros datos de un jugador. */}
         <tbody>
           {players.map((p) => (
-            <tr key={p.id} className="border-t border-border even:bg-secondary/40">
+            <tr key={p.id} className="border-t border-emerald-50 transition-colors hover:bg-emerald-50/70 even:bg-stone-50/70">
               {/* Estos botones permiten cambiar o borrar los datos del jugador. */}
               <td className="px-2 py-3 sm:px-3">
                 <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-accent px-2 font-mono text-xs font-semibold text-accent-foreground">

@@ -1,3 +1,4 @@
+// app/api/: reúne rutas del servidor; esta ruta obtiene los países disponibles.
 import { NextResponse } from "next/server"
 import type { Country } from "@/lib/types"
 

@@ -1,6 +1,8 @@
+// components/: contiene piezas reutilizables de la interfaz, como el armador de alineaciones.
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Player } from "@/lib/types"
@@ -17,44 +19,103 @@ const FORMATIONS: Record<string, number[]> = {
 }
 
 type SlotId = string
+type Formation = keyof typeof FORMATIONS
+
+type Props = {
+  players: Player[]
+  supabase: SupabaseClient
+  userId: string
+}
+
+type LineupRecord = {
+  user_id: string
+  formation: Formation
+  lineup: Record<SlotId, number>
+  coach_id: number | null
+}
 
 // Le da un nombre único a cada lugar de la cancha.
 function slotId(rowIndex: number, colIndex: number): SlotId {
   return `${rowIndex}-${colIndex}`
 }
 
-export function LineupBuilder({ players }: { players: Player[] }) {
-  // Recuerda qué formación se eligió, quién está en cada lugar y quién es el técnico.
-  const [formation, setFormation] = useState<keyof typeof FORMATIONS>("4-4-2")
-  // Guarda qué jugador está en cada lugar de la cancha.
+export function LineupBuilder({ players, supabase, userId }: Props) {
+  const [formation, setFormation] = useState<Formation>("4-4-2")
   const [lineup, setLineup] = useState<Record<SlotId, number>>({})
   const [coachId, setCoachId] = useState<number | null>(null)
   const [picking, setPicking] = useState<SlotId | "coach" | null>(null)
   const [search, setSearch] = useState("")
+  const [loaded, setLoaded] = useState(false)
+  const [saveMessage, setSaveMessage] = useState("")
 
-  // Al volver a esta página, recupera la formación y los jugadores elegidos antes.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("lineup")
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (parsed.formation in FORMATIONS) setFormation(parsed.formation)
-        if (parsed.lineup) setLineup(parsed.lineup)
-        if (typeof parsed.coachId === "number") setCoachId(parsed.coachId)
+    let active = true
+    setLoaded(false)
+    setSaveMessage("")
+
+    async function loadLineup() {
+      try {
+        const { data, error } = await supabase
+          .from("user_lineups")
+          .select("formation, lineup, coach_id")
+          .eq("user_id", userId)
+          .maybeSingle()
+        if (error) throw error
+        if (!active) return
+
+        if (data) {
+          const savedFormation = data.formation as Formation
+          if (savedFormation in FORMATIONS) setFormation(savedFormation)
+          const savedLineup = data.lineup
+          if (savedLineup && typeof savedLineup === "object" && !Array.isArray(savedLineup)) {
+            const validEntries = Object.entries(savedLineup).filter((entry): entry is [string, number] =>
+              typeof entry[1] === "number" && Number.isInteger(entry[1]) && entry[1] > 0,
+            )
+            setLineup(Object.fromEntries(validEntries))
+          }
+          setCoachId(typeof data.coach_id === "number" ? data.coach_id : null)
+        }
+      } catch (error) {
+        if (active) {
+          setSaveMessage(error instanceof Error ? error.message : "No se pudo cargar la alineación desde Supabase.")
+        }
+      } finally {
+        if (active) setLoaded(true)
       }
-    } catch {
-      // Si no hay una alineación guardada, la cancha empieza vacía.
     }
-  }, [])
 
-  // Guarda los cambios para que la alineación siga igual la próxima vez.
-  useEffect(() => {
-    try {
-      localStorage.setItem("lineup", JSON.stringify({ formation, lineup, coachId }))
-    } catch {
-      // Si el navegador no puede guardar, la alineación sigue funcionando por ahora.
+    void loadLineup()
+    return () => {
+      active = false
     }
-  }, [formation, lineup])
+  }, [supabase, userId])
+
+  useEffect(() => {
+    if (!loaded) return
+
+    const record: LineupRecord = {
+      user_id: userId,
+      formation,
+      lineup,
+      coach_id: coachId,
+    }
+    const timeout = window.setTimeout(() => {
+      setSaveMessage("Guardando alineación…")
+      void (async () => {
+        try {
+          const { error } = await supabase
+            .from("user_lineups")
+            .upsert(record, { onConflict: "user_id" })
+          if (error) throw error
+          setSaveMessage("Alineación guardada en Supabase.")
+        } catch (error) {
+          setSaveMessage(error instanceof Error ? error.message : "No se pudo guardar la alineación en Supabase.")
+        }
+      })()
+    }, 500)
+
+    return () => window.clearTimeout(timeout)
+  }, [supabase, userId, formation, lineup, coachId, loaded])
 
   // Acomoda a los jugadores en la cancha: delanteros arriba y arquero abajo.
   // Prepara las filas en el orden visual de la cancha: ataque arriba, arquero abajo.
@@ -143,16 +204,21 @@ export function LineupBuilder({ players }: { players: Player[] }) {
     <section className="mt-10">
       {/* Aquí se elige cómo acomodar al equipo o se quitan todos de la cancha. */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold">
-          Arma tu 11 <span className="text-muted-foreground">({placedCount}/11)</span>
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold">
+            Arma tu 11 <span className="text-muted-foreground">({placedCount}/11)</span>
+          </h2>
+          <p className="text-xs text-muted-foreground" role="status">
+            {loaded ? saveMessage : "Cargando alineación desde Supabase…"}
+          </p>
+        </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap">
             {Object.keys(FORMATIONS).map((f) => (
               <button
                 key={f}
                 type="button"
-                onClick={() => setFormation(f as keyof typeof FORMATIONS)}
+                onClick={() => setFormation(f as Formation)}
                 aria-pressed={formation === f}
                 className={
                   formation === f

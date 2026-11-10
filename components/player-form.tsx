@@ -1,3 +1,4 @@
+// components/: contiene piezas reutilizables de la interfaz, como el formulario de jugadores.
 "use client"
 
 import { useEffect, useState } from "react"
@@ -26,7 +27,7 @@ type Props = {
   editing: Player | null
   existingIds: number[]
   deletedPlayers: Player[]
-  onSave: (values: FormValues) => void
+  onSave: (values: FormValues) => Promise<void>
   onCancel: () => void
 }
 
@@ -38,6 +39,7 @@ export function PlayerForm({ editing, existingIds, deletedPlayers, onSave, onCan
   const [values, setValues] = useState<FormValues>(EMPTY)
   const [error, setError] = useState("")
   const [recovering, setRecovering] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   // Al editar muestra los datos del jugador; al agregar, deja los campos vacíos.
   useEffect(() => {
@@ -84,7 +86,7 @@ export function PlayerForm({ editing, existingIds, deletedPlayers, onSave, onCan
     e.target.value = ""
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     // Antes de guardar, revisa que el número, el nombre, el país y el equipo estén bien.
     if (values.id !== undefined && (!Number.isInteger(values.id) || values.id < 1)) {
@@ -97,10 +99,17 @@ export function PlayerForm({ editing, existingIds, deletedPlayers, onSave, onCan
     if (!values.nationality) return setError("Selecciona una nacionalidad.")
     if (!values.team.trim()) return setError("Indica un equipo.")
     setError("")
-    onSave({ ...values, name: values.name.trim(), team: values.team.trim() })
-    if (!editing) {
-      setValues(EMPTY)
-      setRecovering(false)
+    setSaving(true)
+    try {
+      await onSave({ ...values, name: values.name.trim(), team: values.team.trim() })
+      if (!editing) {
+        setValues(EMPTY)
+        setRecovering(false)
+      }
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "No se pudo guardar el jugador.")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -109,11 +118,19 @@ export function PlayerForm({ editing, existingIds, deletedPlayers, onSave, onCan
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-border bg-card p-5 shadow-sm"
+      className="rounded-[1.5rem] border border-white bg-white p-5 shadow-lg shadow-emerald-950/[0.05] sm:p-6"
     >
-      <h2 className="mb-4 text-lg font-semibold text-card-foreground">
-        {editing ? `Editar jugador #${editing.id}` : "Agregar nuevo jugador"}
-      </h2>
+      <div className="mb-5 border-b border-emerald-100 pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+          {editing ? "Actualiza la plantilla" : "Nuevo integrante"}
+        </p>
+        <h2 className="mt-1 text-xl font-bold tracking-tight text-emerald-950">
+          {editing ? `Editar jugador #${editing.id}` : "Agregar jugador"}
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {editing ? "Modifica los datos del jugador." : "Completa la información para sumarlo al equipo."}
+        </p>
+      </div>
 
       {/* Aquí se escriben el número, el nombre y la foto del jugador. */}
       <div className="grid gap-4 sm:grid-cols-2">
@@ -290,12 +307,12 @@ export function PlayerForm({ editing, existingIds, deletedPlayers, onSave, onCan
       <div className="mt-5 flex gap-2">
         <Button
   type="submit"
-  disabled={!editing && values.id !== undefined && existingIds.includes(values.id)}
+          disabled={saving || (!editing && values.id !== undefined && existingIds.includes(values.id))}
 >
-  {editing ? "Actualizar jugador" : recovering ? "Recuperar jugador" : "Añadir jugador"}
+          {saving ? "Guardando..." : editing ? "Actualizar jugador" : recovering ? "Recuperar jugador" : "Añadir jugador"}
 </Button>
         {editing && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+                  <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
             Cancelar
           </Button>
         )}

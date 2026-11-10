@@ -1,3 +1,4 @@
+// components/ui/: contiene controles visuales básicos reutilizables, como los botones.
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { cva, type VariantProps } from 'class-variance-authority'
 

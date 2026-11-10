@@ -1,3 +1,4 @@
+// components/: contiene piezas reutilizables de la interfaz, como el selector de equipos.
 "use client"
 
 import { useEffect, useRef, useState } from "react"
@@ -5,7 +6,14 @@ import useSWR from "swr"
 import Image from "next/image"
 import type { Team } from "@/lib/types"
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+async function fetcher(url: string): Promise<Team[]> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    const body = await response.json() as { error?: string }
+    throw new Error(body.error || "No se pudieron cargar los equipos.")
+  }
+  return response.json() as Promise<Team[]>
+}
 
 // Cuando se elige un equipo, permite mostrar también el escudo que le corresponde.
 type Props = {
@@ -39,7 +47,7 @@ export function TeamCombobox({ value, onChange, id }: Props) {
   }, [])
 
   // Empieza a buscar cuando ya se escribieron al menos dos letras.
-  const { data, isLoading } = useSWR<Team[]>(
+  const { data, error, isLoading } = useSWR<Team[]>(
     debounced.length >= 2 ? `/api/teams?q=${encodeURIComponent(debounced)}` : null,
     fetcher,
     { revalidateOnFocus: false },
@@ -68,7 +76,12 @@ export function TeamCombobox({ value, onChange, id }: Props) {
       {open && debounced.length >= 2 && (
         <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-popover p-1 shadow-lg">
           {isLoading && <li className="px-3 py-2 text-sm text-muted-foreground">Buscando…</li>}
-          {!isLoading && teams.length === 0 && (
+          {!isLoading && error && (
+            <li className="px-3 py-2 text-sm text-destructive" role="alert">
+              {error instanceof Error ? error.message : "No se pudieron cargar los equipos. Puedes escribir el nombre manualmente."}
+            </li>
+          )}
+          {!isLoading && !error && teams.length === 0 && (
             <li className="px-3 py-2 text-sm text-muted-foreground">
               Sin resultados. Puedes escribir el nombre manualmente.
             </li>

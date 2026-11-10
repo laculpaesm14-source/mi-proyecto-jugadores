@@ -1,3 +1,4 @@
+// lib/: reúne tipos y constantes compartidos por las distintas partes de la aplicación.
 export type Position = "arquero" | "defensa" | "medio campo" | "delantero" | "tecnico"
 
 // Lista de posiciones que se puede elegir para cada jugador.

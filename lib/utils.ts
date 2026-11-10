@@ -1,3 +1,4 @@
+// lib/: reúne funciones auxiliares compartidas, como la combinación de clases CSS.
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
